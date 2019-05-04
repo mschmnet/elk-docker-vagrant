@@ -1,0 +1,52 @@
+version: '3.7'
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.initial_master_nodes=es01
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata01:/usr/share/elasticsearch/data
+      - ./config/elasticsearch/:/usr/share/elasticsearch/config/:ro
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.0.1
+    networks:
+      - esnet
+    volumes:
+      - ./config/kibana/:/usr/share/kibana/config/:ro 
+    depends_on:
+      - es01
+    ports:
+      - 5601:5601
+  logstash:
+    container_name: logstash
+    image: docker.elastic.co/logstash/logstash:7.0.1
+    networks:
+      - esnet
+    volumes:
+      - ./config/logstash/pipeline/:/usr/share/logstash/config/pipeline/:ro
+      - ./config/logstash/config/:/usr/share/logstash/config/config/:ro
+    depends_on:
+      - es01
+    ports:
+      - 5044:5044
+      - 9600:9600
+volumes:
+  esdata01:
+    driver: local
+
+networks:
+  esnet:
