@@ -13,6 +13,9 @@ Vagrant.configure("2") do |config|
   # Port 5601 used by Kibana
   config.vm.network "forwarded_port", guest: 5601, host: 5601, host_ip: "127.0.0.1"
 
+  # Port 9600 used by logstash. This allow to run beats outside of VM
+  config.vm.network "forwarded_port", guest: 5601, host: 5601, host_ip: "127.0.0.1"
+
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = 2
     vb.memory = 8192
