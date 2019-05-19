@@ -16,10 +16,17 @@ services:
     volumes:
       - esdata01:/usr/share/elasticsearch/data
       - ./config/elasticsearch/:/usr/share/elasticsearch/config/:ro
+      - ./elasticsearch-healthcheck.sh:/usr/share/elasticsearch/elasticsearch-healthcheck.sh:ro
     ports:
       - 9200:9200
     networks:
       - esnet
+    healthcheck:
+      test: ["CMD", "bash", "/usr/share/elasticsearch/elasticsearch-healthcheck.sh", "es01"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s 
   kibana:
     container_name: kibana
     image: docker.elastic.co/kibana/kibana:7.0.1
@@ -27,26 +34,60 @@ services:
       - esnet
     volumes:
       - ./config/kibana/:/usr/share/kibana/config/:ro 
+      - ./elasticsearch-healthcheck.sh:/usr/share/kibana/elasticsearch-healthcheck.sh:ro
+      - ./wait-for-es01.sh:/usr/share/kibana/wait-for-es01.sh:ro
     depends_on:
       - es01
     ports:
       - 5601:5601
+    command: ["bash", "wait-for-es01.sh", "es01", "/usr/local/bin/kibana-docker"]
   logstash:
     container_name: logstash
     image: docker.elastic.co/logstash/logstash:7.0.1
     networks:
       - esnet
     volumes:
-      - ./config/logstash/pipeline/:/usr/share/logstash/config/pipeline/:ro
-      - ./config/logstash/config/:/usr/share/logstash/config/config/:ro
+      - ./config/logstash/config:/usr/share/logstash/config/:ro
+      - ./config/logstash/pipelines:/usr/share/logstash/pipelines/:ro
+      - ./wait-for-es01.sh:/usr/share/logstash/wait-for-es01.sh:ro
+      - ./elasticsearch-healthcheck.sh:/usr/share/logstash/elasticsearch-healthcheck.sh:ro
     depends_on:
       - es01
     ports:
-      - 5044:5044
       - 9600:9600
+    command: ["bash", "wait-for-es01.sh", "es01", "/usr/local/bin/docker-entrypoint"]
+  fb01:
+    container_name: fb01
+    image: docker.elastic.co/beats/filebeat:7.0.1
+    networks:
+      - esnet
+    volumes:
+      - ./wait-for-es01.sh:/usr/share/filebeat/wait-for-es01.sh:ro
+      - ./config/fb01/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./elasticsearch-healthcheck.sh:/usr/share/filebeat/elasticsearch-healthcheck.sh:ro
+      - ./start-fb.sh:/usr/share/filebeat/start-fb.sh:ro
+      - /down/:/down/:ro
+    depends_on:
+      - logstash 
+      - es01
+    command: ["bash", "wait-for-es01.sh", "es01", "bash", "start-fb.sh"]
+  fb02:
+    container_name: fb02
+    image: docker.elastic.co/beats/filebeat:7.0.1
+    networks:
+      - esnet
+    volumes:
+      - ./wait-for-es01.sh:/usr/share/filebeat/wait-for-es01.sh:ro
+      - ./config/fb02/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./elasticsearch-healthcheck.sh:/usr/share/filebeat/elasticsearch-healthcheck.sh:ro
+      - ./start-fb.sh:/usr/share/filebeat/start-fb.sh:ro
+      - /down/:/down/:ro
+    depends_on:
+      - logstash 
+      - es01
+    command: ["bash", "wait-for-es01.sh", "es01", "bash", "start-fb.sh"]
 volumes:
   esdata01:
     driver: local
-
 networks:
   esnet:
