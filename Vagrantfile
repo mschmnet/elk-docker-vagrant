@@ -13,11 +13,13 @@ Vagrant.configure("2") do |config|
   # Port 5601 used by Kibana
   config.vm.network "forwarded_port", guest: 443, host: 5601, host_ip: "127.0.0.1"
 
-  config.vm.synced_folder "D:\\down\\", "/down"
+  config.vm.synced_folder "M:\\down\\", "/down"
+  config.vm.synced_folder "M:\\data\\elk\\", "/data/elk"
+  config.vm.synced_folder "M:\\data\\elk_backup\\", "/data/elk_backup"
 
   config.vm.provider "virtualbox" do |vb|
-    vb.cpus = 2
-    vb.memory = 8192
+    vb.cpus = 4
+    vb.memory = 8192 
   end
 
   # config.disksize requires the the vagrant-disksize plugin
