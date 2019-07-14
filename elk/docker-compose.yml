@@ -28,6 +28,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s 
+    stop_grace_period: 1m30s
   kibana:
     container_name: kibana
     image: docker.elastic.co/kibana/kibana:7.0.1
@@ -42,6 +43,7 @@ services:
     ports:
       - 5601:5601
     command: ["bash", "wait-for-es01.sh", "es01", "/usr/local/bin/kibana-docker"]
+    stop_grace_period: 1m30s
   logstash:
     container_name: logstash
     image: docker.elastic.co/logstash/logstash:7.0.1
@@ -57,6 +59,7 @@ services:
     ports:
       - 9600:9600
     command: ["bash", "wait-for-es01.sh", "es01", "/usr/local/bin/docker-entrypoint"]
+    stop_grace_period: 1m30s
   fb01:
     container_name: fb01
     image: docker.elastic.co/beats/filebeat:7.0.1
@@ -72,6 +75,7 @@ services:
       - logstash 
       - es01
     command: ["bash", "wait-for-es01.sh", "es01", "bash", "start-fb.sh"]
+    stop_grace_period: 1m30s
   fb02:
     container_name: fb02
     image: docker.elastic.co/beats/filebeat:7.0.1
@@ -87,8 +91,21 @@ services:
       - logstash 
       - es01
     command: ["bash", "wait-for-es01.sh", "es01", "bash", "start-fb.sh"]
+    stop_grace_period: 1m30s
 volumes:
   esdata01:
-    driver: local
+    driver: local 
+    driver_opts:
+      type: none
+      device: /data/elk/
+      o: bind
+  esdata01_backup:
+    driver: local 
+    driver_opts:
+      type: none
+      device: /data/elk_backup/
+      o: bind
+
+
 networks:
   esnet:
