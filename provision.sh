@@ -75,7 +75,7 @@ sudo usermod -aG docker vagrant
 if [[ "$http_proxy" != "" ]]
 then
   sudo mkdir -p /etc/systemd/system/docker.service.d
-  sudo bash -c 'cat > /etc/systemd/system/docker.service.d/http-proxy.conf << EOF
+  sudo -E bash -c 'cat > /etc/systemd/system/docker.service.d/http-proxy.conf << EOF
 [Service]
 Environment="HTTP_PROXY=$http_proxy"
 EOF
