@@ -69,7 +69,7 @@ pip3 install docker-compose
 sudo bash <<< 'echo "vm.max_map_count=262144" >> /etc/sysctl.conf'
 # For current session:
 sudo sysctl -w vm.max_map_count=262144
-. .profile
+. ~/.profile
 sudo usermod -aG docker vagrant
 
 if [[ "$http_proxy" != "" ]]
