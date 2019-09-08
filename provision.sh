@@ -70,7 +70,7 @@ sudo bash <<< 'echo "vm.max_map_count=262144" >> /etc/sysctl.conf'
 # For current session:
 sudo sysctl -w vm.max_map_count=262144
 . ~/.profile
-sudo usermod -aG docker vagrant
+sudo usermod -aG docker $(whoami)
 
 if [[ "$http_proxy" != "" ]]
 then
